@@ -39,5 +39,15 @@
       <version>0.0.1</version>
       <type>jar</type>
     </dependency>
+    <dependency>
+      <groupId>be.kuleuven.cs.gridlock</groupId>
+      <artifactId>gridlock-routing</artifactId>
+      <version>0.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>be.kuleuven.cs.gridlock</groupId>
+      <artifactId>gridlock-simulation-model-queue</artifactId>
+      <version>0.0.1</version>
+    </dependency>
   </dependencies>
 </project>

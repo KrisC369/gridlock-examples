@@ -4,6 +4,8 @@ import be.kuleuven.cs.gridlock.configuration.Configuration;
 import be.kuleuven.cs.gridlock.configuration.FileConfigurationHelper;
 import be.kuleuven.cs.gridlock.coordination.VehicleCoordination;
 import be.kuleuven.cs.gridlock.simulation.SimulationContext;
+import be.kuleuven.cs.gridlock.simulation.events.EventFilter;
+import be.kuleuven.cs.gridlock.simulation.events.EventListener;
 
 /**
  * This is an example on how to use GridLock with predefined routes
@@ -11,7 +13,8 @@ import be.kuleuven.cs.gridlock.simulation.SimulationContext;
  * @author Rutger Claes <rutger.claes@cs.kuleuven.be>
  */
 public class MatLabExample {
-
+     private EventListener listener2;
+    
     public static void main( String[] args ) {
         MatLabExample exampleSimulation = new MatLabExample();
         exampleSimulation.setup();
@@ -35,9 +38,15 @@ public class MatLabExample {
         // When the component is added to the context, it will have access to the
         // configuration file
         this.context.addSimulationComponent( new VehicleCoordination() );
+        EventListener listener = new TestEventListener();
+        EventFilter[] filters = new EventFilter[]{ new EventFilter.CatchAll()};
+        this.context.getEventController().registerListener(listener, filters);
+        listener2 = listener;
+        
     }
 
     private void run() {
         this.context.getSimulation().run();
+        System.out.println("Average speed for cars: "+((TestEventListener)listener2).getTot());
     }
 }
