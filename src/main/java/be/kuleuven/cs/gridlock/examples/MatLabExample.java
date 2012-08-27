@@ -38,7 +38,7 @@ public class MatLabExample {
         // When the component is added to the context, it will have access to the
         // configuration file
         this.context.addSimulationComponent( new VehicleCoordination() );
-        EventListener listener = new TestEventListener();
+        EventListener listener = new SimpleAverageEventListener();
         EventFilter[] filters = new EventFilter[]{ new EventFilter.CatchAll()};
         this.context.getEventController().registerListener(listener, filters);
         listener2 = listener;
@@ -47,6 +47,6 @@ public class MatLabExample {
 
     private void run() {
         this.context.getSimulation().run();
-        System.out.println("Average speed for cars: "+((TestEventListener)listener2).getTot());
+        System.out.println("Average speed for cars: "+((SimpleAverageEventListener)listener2).getAverage());
     }
 }
