@@ -37,9 +37,7 @@ public class SimpleEvenlyDistributedTrafficGenerator extends AbstractTrafficGene
         for (TrafficSummaryInstance tsi : readSummary()) {
             NodeReference startRef = tsi.getOrigin();
             NodeReference endRef = tsi.getDestination();
-            int totalquota = tsi.getValue();
-            
-            int hourlyQuota = getHourLimit() == 0 ? 1 : totalquota / getHourLimit();
+            int hourlyQuota = tsi.getValue();
             long startHour = hour * 60 * 60 * 1000;
             long delta = hourlyQuota == 0 ? hourlyTimespan : hourlyTimespan / hourlyQuota;
             
