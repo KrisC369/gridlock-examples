@@ -70,6 +70,8 @@ public class GeneratorExample {
     private void run() {
         generator.record(recorder);
         this.context.getSimulation().run();
-        System.out.println("Average speed for cars: " + ((SimpleAverageEventListener) listener2).getAverage());
+        double avgSpeed = ((SimpleAverageEventListener)listener2).getAverage();
+        System.out.println("Average speed for cars: " + avgSpeed + " m/s");
+        System.out.println("Average speed for cars: " + (avgSpeed*3.6) + " km/h"); //convert back to km/h
     }
 }
