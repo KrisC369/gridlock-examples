@@ -2,8 +2,9 @@ package be.kuleuven.cs.gridlock.examples.csvgenerator;
 
 import be.kuleuven.cs.gridlock.configuration.Configuration;
 import be.kuleuven.cs.gridlock.examples.MatLabLoader;
+import be.kuleuven.cs.gridlock.simulation.api.LinkReference;
 import be.kuleuven.cs.gridlock.simulation.api.NodeReference;
-import be.kuleuven.cs.gridlock.traffic.AbstractTrafficGenerator;
+import be.kuleuven.cs.gridlock.utilities.graph.Graph;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,49 +16,30 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.math3.random.RandomData;
 
 /**
  *
- * @author Kristof Coninx <kristof.coninx@student.kuleuven.be>
+ * @author Kristof Coninx <kristof.coninx at student.kuleuven.be>
  */
-public class SimpleEvenlyDistributedTrafficGenerator extends AbstractTrafficGenerator {
+public class SimpleEvenlyDistributedTrafficGenerator extends MatrixBasedTrafficGenerator {
 
-    public static final String GENERATOR_MATRIX_LOCATION_KEY = "traffic.generator.matrix.file";
-    private Configuration configuration;
+    public SimpleEvenlyDistributedTrafficGenerator(Graph<NodeReference, LinkReference> graph, RandomData random, Configuration configuration) {
+        super(graph, random, configuration);
+    }
 
     public SimpleEvenlyDistributedTrafficGenerator(Configuration config) {
-        super(null, null, config);
-        this.configuration = config;
+        super(config);
     }
 
-    @Override
-    protected void generateHourlyTraffic(int hour, SortedMap<Long, List<VehicleInsertion>> insertions) {
-        final long hourlyTimespan = 3600000;
-        
-        for (TrafficSummaryInstance tsi : readSummary()) {
-            NodeReference startRef = tsi.getOrigin();
-            NodeReference endRef = tsi.getDestination();
-            int hourlyQuota = tsi.getValue();
-            long startHour = hour * 60 * 60 * 1000;
-            long delta = hourlyQuota == 0 ? hourlyTimespan : hourlyTimespan / hourlyQuota;
-            
-            for (int i = 0; i < hourlyQuota; i++) {
-                long time = (i * delta) + startHour;
-                List<VehicleInsertion> list = new ArrayList<VehicleInsertion>();
-                list.add(new VehicleInsertion(startRef, endRef));
-                insertions.put(time, list);
-            }
-        }
-    }
-
-    private Collection<TrafficSummaryInstance> readSummary() {
+    protected Collection<TrafficSummaryInstance> readSummary() {
         String nextLine = null;
         List<TrafficSummaryInstance> toReturn = new ArrayList<TrafficSummaryInstance>();
-        
+
         try {
-            String summaryLocation = configuration.getString(GENERATOR_MATRIX_LOCATION_KEY, null);
+            String summaryLocation = getConfiguration().getString(GENERATOR_MATRIX_LOCATION_KEY, null);
             BufferedReader linkReader = new BufferedReader(new InputStreamReader(MatLabLoader.class.getResourceAsStream(summaryLocation)));
-            
+
             while ((nextLine = linkReader.readLine()) != null) {
                 Map<String, Object> attributes = new HashMap<String, Object>();
                 String[] pieces = nextLine.split(",", 3);
@@ -68,10 +50,29 @@ public class SimpleEvenlyDistributedTrafficGenerator extends AbstractTrafficGene
 
                 toReturn.add(new TrafficSummaryInstance(origin, destination, vehicles));
             }
+            linkReader.close();
         } catch (IOException ex) {
-            Logger.getLogger(MatLabLoader.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SimpleEvenlyDistributedTrafficGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
         return toReturn;
+    }
+
+    @Override
+    protected void generateHourlyTraffic(int hour, SortedMap<Long, List<VehicleInsertion>> insertions) {
+        final long hourlyTimespan = 3600000;
+        for (TrafficSummaryInstance tsi : readSummary()) {
+            NodeReference startRef = tsi.getOrigin();
+            NodeReference endRef = tsi.getDestination();
+            int hourlyQuota = tsi.getValue();
+            long startHour = hour * 60 * 60 * 1000;
+            long delta = hourlyQuota == 0 ? hourlyTimespan : hourlyTimespan / hourlyQuota;
+            for (int i = 0; i < hourlyQuota; i++) {
+                long time = (i * delta) + startHour;
+                List<VehicleInsertion> list = new ArrayList<VehicleInsertion>();
+                list.add(new VehicleInsertion(startRef, endRef));
+                insertions.put(time, list);
+            }
+        }
     }
 
     protected static class TrafficSummaryInstance {
